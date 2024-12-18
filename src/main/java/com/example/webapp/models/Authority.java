@@ -5,26 +5,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
-
 @Entity
-@Table(name = "clients")
+@Table(name = "authorities")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Client {
+public class Authority {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phone;
-    private String address;
-    private String status;
-    private Date createdAt;
+    @Column(nullable = false)
+    private String role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // Foreign key to User
+    private User user;
 }
-
