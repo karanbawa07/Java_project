@@ -3,9 +3,10 @@ package com.example.webapp.Controllers;
 import com.example.webapp.models.Client;
 import com.example.webapp.models.ClientDto;
 import com.example.webapp.repositories.ClientRepository;
-import jakarta.validation.Valid;
+import jakarta.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.Banner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,8 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
-import java.util.List;
+import java.util.Date;
 
 @Controller
 @RequestMapping("/clients")
@@ -22,12 +22,26 @@ public class ClientController {
 
     @Autowired
     private ClientRepository clientRepo;
-    @GetMapping({"", "/"})
-    public String getClients(Model model) {
-        List<Client> clients = clientRepo.findAll(Sort.by(Sort.Direction.DESC, "id"));
-        model.addAttribute("data", clients);
+
+    @GetMapping("")
+    public String getClients(@RequestParam(defaultValue = "0") int page,
+                             @RequestParam(defaultValue = "10") int size,
+                             Model model) {
+
+        if (page < 0) page = 0;
+
+        Page<Client> clients = clientRepo.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
+        model.addAttribute("data", clients.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", clients.getTotalPages());
+        model.addAttribute("totalItems", clients.getTotalElements());
         return "clients/index";
     }
+
+
+
+
+
     @GetMapping("/create")
     public String createClient(Model model) {
         ClientDto clientDto = new ClientDto();
@@ -54,7 +68,7 @@ public class ClientController {
         client.setPhone(clientDto.getPhone());
         client.setAddress(clientDto.getAddress());
         client.setStatus(clientDto.getStatus());
-        client.setCreatedAt(new Date(System.currentTimeMillis()));
+        client.setCreatedAt(new Date());
 
         clientRepo.save(client);
 
